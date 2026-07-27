@@ -12,8 +12,7 @@
 
 **Author:** [Atia Sanjida](https://www.linkedin.com/in/atia-sanjida-085947233/) · **Contact:** [atia.abk@gmail.com](mailto:atia.abk@gmail.com)
 
----
-
+<!--
 ## 📖 Table of Contents
 
 1. [Why This Repository Exists](#-why-this-repository-exists)
@@ -32,7 +31,7 @@
 14. [About the Author](#-about-the-author)
 15. [License](#-license)
 
----
+--->
 
 ## 🎯 Why This Repository Exists
 
