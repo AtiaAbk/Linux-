@@ -54,6 +54,7 @@ The terminal — navigation, permissions, processes, networking, scripting — i
 | **Kali Linux** | Debian-based | Penetration testing, security research | `apt` |
 | **Fedora** | Red Hat–based | Cutting-edge desktop, RHEL-adjacent admin skills | `dnf` |
 
+<!-- 
 ## 📁 Repository Structure
 
 ```
@@ -85,6 +86,8 @@ Linux-Terminal-Mastery/
 │
 └── images/                       ← screenshots, diagrams
 ```
+This is a comment -->
+
 
 > **How to use this repo:** Start here for anything common to all four distros (permissions, navigation, scripting, networking). Go into a distro's own folder only for installation steps and that distro's unique quirks.
 
