@@ -459,7 +459,7 @@ See [`faq.md`](faq.md) for a curated set of Linux/DevOps interview questions wit
 **Atia Sanjida**
 
 - 📧 Email: [atia.abk@gmail.com](mailto:atia.abk@gmail.com)
-- 💼 LinkedIn: [linkedin.com/in/atia_sanjida](https://www.linkedin.com/in/atia-sanjida-085947233/)
+- 💼 LinkedIn: [linkedin.com/in/atia_sanjida]([https://www.linkedin.com/in/atia-sanjida-085947233/](https://www.linkedin.com/in/atia-sanjida-085947233/))
 - 💻 GitHub: [github.com/AtiaAbk](https://github.com/AtiaAbk)
 
 ## 📄 License
