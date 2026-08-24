@@ -1,6 +1,6 @@
 # 🎥 Suggested Resources — Videos, Websites & Practice Platforms
 
-> এই repo standalone (নিজে সম্পূর্ণ), কিন্তু গভীরে যেতে চাইলে এই official ও reputable resource গুলো ব্যবহার করতে পারো।
+
 
 ## 📚 Official Documentation
 
@@ -11,20 +11,18 @@
 | GNU Bash Manual | Bash internals, scripting reference | https://www.gnu.org/software/bash/manual/ |
 | Linux man-pages Project | Every core command's manual | https://man7.org/linux/man-pages/ |
 
-## 🎬 YouTube Channels (বাংলা + English)
+## 🎬 YouTube Channels 
 
-| Channel | কী শেখায় |
+| Channel | 
 |---|---|
 | NetworkChuck | Linux/Kali beginner-friendly practical videos |
 | The Cyber Mentor | Ethical hacking, pentesting fundamentals |
 | David Bombal | Networking + Linux terminal |
-| Anonymous Bangladesh / বাংলা Linux কমিউনিটি চ্যানেলসমূহ | বাংলায় Linux terminal বেসিক |
-
-*(তোমার পছন্দের নির্দিষ্ট চ্যানেল/ভিডিও লিংক থাকলে পাঠাও — এখানে যোগ করে দেব)*
+| Anonymous Bangladesh / 
 
 ## 🌐 Practice Platforms
 
-| Platform | ব্যবহার |
+| Platform |
 |---|---|
 | OverTheWire (Bandit) | Terminal command practice, wargame style |
 | TryHackMe | Guided Kali/Linux + security labs |
