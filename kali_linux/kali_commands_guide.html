@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>100 Essential Kali Linux Commands — Field Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0e14;
+    --bg-1: #0d1219;
+    --panel: #111826;
+    --panel-2: #141d2e;
+    --panel-3: #182236;
+    --border: #23304a;
+    --border-soft: #1a2438;
+    --text: #d9e1ee;
+    --text-dim: #8291a8;
+    --text-faint: #56637a;
+    --cyan: #38d6cc;
+    --cyan-dim: #1f8b85;
+    --blue: #5b8def;
+    --amber: #e8a94a;
+    --amber-dim: #8a6626;
+    --red: #e2564d;
+    --green: #7fd88f;
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+    --radius: 3px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(56,214,204,0.07), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 90% 0%, rgba(91,141,239,0.06), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--cyan-dim);color:#fff;}
+  a{color:var(--cyan);}
+  code, .mono{font-family:var(--mono);}
+
+  /* ===== Scanline / grid texture ===== */
+  .noise-layer{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      repeating-linear-gradient(180deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+    opacity:0.5;
+  }
+
+  /* ===== HERO ===== */
+  .hero{
+    position:relative;
+    padding:64px 24px 40px;
+    max-width:1180px;
+    margin:0 auto;
+  }
+  .term-window{
+    background:linear-gradient(180deg, var(--panel-2), var(--panel));
+    border:1px solid var(--border);
+    border-radius:8px;
+    overflow:hidden;
+    box-shadow:0 30px 80px -30px rgba(0,0,0,0.7), 0 0 0 1px rgba(56,214,204,0.03);
+  }
+  .term-titlebar{
+    display:flex; align-items:center; gap:8px;
+    padding:10px 14px;
+    background:var(--panel-3);
+    border-bottom:1px solid var(--border-soft);
+  }
+  .dot{width:10px;height:10px;border-radius:50%;}
+  .dot.r{background:#e2564d;} .dot.y{background:#e8a94a;} .dot.g{background:#3fbf6f;}
+  .term-title{
+    margin-left:8px; font-family:var(--mono); font-size:12px; color:var(--text-faint);
+  }
+  .term-body{padding:38px 34px 34px;}
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:0.12em; color:var(--cyan);
+    text-transform:uppercase; margin:0 0 14px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{content:"◆"; font-size:9px;}
+  h1.hero-title{
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:clamp(28px, 5vw, 50px);
+    line-height:1.12;
+    margin:0 0 18px;
+    color:#f1f5fb;
+    letter-spacing:-0.01em;
+  }
+  h1.hero-title .dim{color:var(--text-faint);}
+  .hero-sub{
+    font-size:16px; color:var(--text-dim); max-width:640px; margin:0 0 26px;
+  }
+  .typed-line{
+    font-family:var(--mono); font-size:14px; color:var(--green);
+    margin-top:22px; min-height:22px;
+  }
+  .typed-line .prompt{color:var(--cyan);}
+  .typed-line .cursor{display:inline-block; width:8px; height:15px; background:var(--green); margin-left:2px; vertical-align:-2px; animation:blink 1s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0;}}
+
+  .stat-row{
+    display:flex; flex-wrap:wrap; gap:0;
+    margin-top:32px;
+    border-top:1px solid var(--border-soft);
+  }
+  .stat{
+    flex:1; min-width:130px;
+    padding:18px 20px 0;
+    border-right:1px solid var(--border-soft);
+  }
+  .stat:last-child{border-right:none;}
+  .stat-num{font-family:var(--mono); font-size:26px; font-weight:600; color:#fff;}
+  .stat-num span{color:var(--cyan);}
+  .stat-label{font-size:12px; color:var(--text-faint); margin-top:2px; text-transform:uppercase; letter-spacing:0.06em;}
+
+  /* ===== SAFETY BANNER ===== */
+  .safety{
+    max-width:1180px; margin:0 auto 8px; padding:0 24px;
+  }
+  .safety-box{
+    border:1px solid var(--amber-dim);
+    background:linear-gradient(90deg, rgba(232,169,74,0.09), rgba(232,169,74,0.02));
+    border-radius:6px;
+    padding:16px 20px;
+    display:flex; gap:14px; align-items:flex-start;
+    font-size:13.5px;
+    color:#e8dcc4;
+  }
+  .safety-box .icon{font-size:18px; line-height:1.4;}
+  .safety-box b{color:var(--amber);}
+
+  /* ===== CONTROLS ===== */
+  .controls{
+    max-width:1180px; margin:30px auto 0; padding:0 24px;
+    position:sticky; top:0; z-index:5;
+    padding-top:14px; padding-bottom:14px;
+    background:linear-gradient(180deg, var(--bg) 78%, transparent);
+  }
+  .controls-inner{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:14px 16px;
+    display:flex; flex-wrap:wrap; gap:12px; align-items:center;
+  }
+  .search-wrap{
+    display:flex; align-items:center; gap:10px;
+    background:var(--bg-1); border:1px solid var(--border-soft); border-radius:5px;
+    padding:9px 14px; flex:1; min-width:220px;
+  }
+  .search-wrap svg{flex-shrink:0; opacity:0.5;}
+  #search{
+    background:transparent; border:none; outline:none; color:var(--text);
+    font-family:var(--mono); font-size:13.5px; width:100%;
+  }
+  #search::placeholder{color:var(--text-faint);}
+  .chip-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    font-family:var(--mono); font-size:12px; padding:7px 12px;
+    border:1px solid var(--border-soft); border-radius:20px;
+    background:var(--bg-1); color:var(--text-dim); cursor:pointer;
+    transition:all .15s ease; white-space:nowrap;
+    user-select:none;
+  }
+  .chip:hover{border-color:var(--cyan-dim); color:var(--text);}
+  .chip.active{
+    background:rgba(56,214,204,0.12); border-color:var(--cyan); color:var(--cyan);
+  }
+  .chip.star.active{background:rgba(232,169,74,0.14); border-color:var(--amber); color:var(--amber);}
+  .result-count{
+    font-family:var(--mono); font-size:12px; color:var(--text-faint); margin:14px 24px 0; max-width:1180px; margin-left:auto; margin-right:auto; padding:0 24px;
+  }
+
+  /* ===== GRID ===== */
+  .grid-wrap{max-width:1180px; margin:0 auto; padding:16px 24px 80px;}
+  .cmd-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+    gap:14px;
+    margin-top:10px;
+  }
+  .cat-heading{
+    grid-column:1/-1;
+    font-family:var(--mono); font-size:13px; color:var(--text-dim);
+    letter-spacing:0.05em; text-transform:uppercase;
+    margin:30px 0 2px; padding-bottom:8px; border-bottom:1px solid var(--border-soft);
+    display:flex; align-items:center; gap:8px;
+  }
+  .cat-heading:first-child{margin-top:6px;}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:6px;
+    overflow:hidden;
+    cursor:pointer;
+    transition:border-color .15s ease, transform .1s ease;
+  }
+  .card:hover{border-color:var(--cyan-dim);}
+  .card.open{border-color:var(--cyan);}
+  .card-head{
+    padding:13px 15px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .card-num{
+    font-family:var(--mono); font-size:11px; color:var(--text-faint);
+    background:var(--bg-1); border:1px solid var(--border-soft);
+    border-radius:4px; padding:2px 6px; flex-shrink:0;
+  }
+  .card-name{
+    font-family:var(--mono); font-weight:600; font-size:14.5px; color:#fff;
+    flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .badge-star{color:var(--amber); font-size:12px;}
+  .badge-dup{
+    font-family:var(--mono); font-size:9.5px; color:var(--red); border:1px solid rgba(226,86,77,0.4);
+    padding:1px 5px; border-radius:3px; text-transform:uppercase;
+  }
+  .chevron{color:var(--text-faint); transition:transform .15s ease; flex-shrink:0; font-size:11px;}
+  .card.open .chevron{transform:rotate(90deg); color:var(--cyan);}
+  .card-purpose{
+    padding:0 15px 13px; margin-top:-4px;
+    font-size:13px; color:var(--text-dim); line-height:1.45;
+  }
+
+  .card-detail{
+    max-height:0; overflow:hidden; transition:max-height .28s ease;
+    border-top:1px solid var(--border-soft);
+  }
+  .card.open .card-detail{max-height:900px;}
+  .detail-inner{padding:14px 15px 18px;}
+  .detail-label{
+    font-family:var(--mono); font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--text-faint); margin:12px 0 6px;
+  }
+  .detail-label:first-child{margin-top:0;}
+  .term-pane{
+    background:#05070c; border:1px solid var(--border-soft); border-radius:4px;
+    padding:10px 12px; font-family:var(--mono); font-size:12.5px;
+    white-space:pre-wrap; word-break:break-word;
+  }
+  .term-pane .prompt{color:var(--cyan);}
+  .term-pane .out{color:var(--text-dim); display:block; margin-top:4px;}
+  .useful-text{font-size:12.5px; color:var(--text-dim);}
+  .note-box{
+    display:flex; gap:8px; font-size:12px; color:var(--amber);
+    background:rgba(232,169,74,0.07); border:1px solid rgba(232,169,74,0.2);
+    border-radius:4px; padding:8px 10px; margin-top:6px;
+  }
+  .note-box.dup{color:var(--red); background:rgba(226,86,77,0.07); border-color:rgba(226,86,77,0.2);}
+
+  .no-results{
+    grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--text-faint);
+    font-family:var(--mono); font-size:13px;
+  }
+
+  /* ===== SECTIONS ===== */
+  .section{max-width:1180px; margin:0 auto; padding:50px 24px;}
+  .section-head{margin-bottom:26px;}
+  .section-eyebrow{
+    font-family:var(--mono); font-size:11px; color:var(--cyan); letter-spacing:0.1em; text-transform:uppercase; margin:0 0 8px;
+  }
+  .section-title{font-size:24px; font-weight:600; color:#fff; margin:0;}
+  .section-sub{color:var(--text-dim); font-size:14px; margin-top:8px; max-width:640px;}
+
+  .flow-strip{
+    display:flex; flex-wrap:wrap; align-items:stretch; gap:0;
+    border:1px solid var(--border); border-radius:8px; overflow:hidden;
+  }
+  .flow-step{
+    flex:1; min-width:130px; padding:18px 16px; background:var(--panel);
+    border-right:1px solid var(--border-soft); position:relative;
+  }
+  .flow-step:last-child{border-right:none;}
+  .flow-step .fnum{font-family:var(--mono); color:var(--cyan); font-size:12px;}
+  .flow-step .flabel{font-weight:600; color:#fff; margin-top:6px; font-size:14px;}
+  .flow-step .fdesc{color:var(--text-faint); font-size:12px; margin-top:4px;}
+  .flow-arrow{
+    display:flex; align-items:center; justify-content:center; color:var(--text-faint);
+    padding:0 6px; font-family:var(--mono);
+  }
+
+  .level-list{display:flex; flex-direction:column; gap:0;}
+  .level-row{
+    display:grid; grid-template-columns:64px 200px 1fr; gap:18px;
+    padding:18px 0; border-top:1px solid var(--border-soft); align-items:baseline;
+  }
+  .level-row:first-child{border-top:none;}
+  .level-tag{font-family:var(--mono); color:var(--cyan); font-size:13px;}
+  .level-name{font-weight:600; color:#fff; font-size:14.5px;}
+  .level-tools{font-family:var(--mono); font-size:12px; color:var(--text-dim); line-height:1.8;}
+  .level-tools code{
+    background:var(--bg-1); border:1px solid var(--border-soft); padding:1px 6px; border-radius:3px; margin:0 4px 4px 0; display:inline-block;
+  }
+  .level-goal{color:var(--text-faint); font-size:12.5px; margin-top:6px; font-style:italic;}
+
+  .golden-rule{
+    text-align:center; padding:50px 20px;
+    border:1px dashed var(--border);
+    border-radius:10px;
+    background:radial-gradient(ellipse 500px 200px at 50% 0%, rgba(56,214,204,0.06), transparent);
+  }
+  .golden-rule .gr-line{
+    font-family:var(--mono); font-size:clamp(16px,3vw,26px); font-weight:600; color:#fff;
+    margin:6px 0;
+  }
+  .golden-rule .gr-or{color:var(--text-faint); font-size:12px; letter-spacing:0.2em; margin:10px 0;}
+  .golden-rule .gr-line .hl{color:var(--cyan);}
+
+  .ref-table{width:100%; border-collapse:collapse; font-size:13px;}
+  .ref-table tr{border-top:1px solid var(--border-soft);}
+  .ref-table tr:first-child{border-top:none;}
+  .ref-table td{padding:11px 10px; vertical-align:top;}
+  .ref-table td:first-child{color:var(--text-dim); width:220px; font-weight:500;}
+  .ref-table td:last-child code{
+    font-family:var(--mono); font-size:12px; color:var(--cyan); background:rgba(56,214,204,0.08);
+    padding:2px 6px; border-radius:3px; margin:0 3px 3px 0; display:inline-block; border:1px solid rgba(56,214,204,0.18);
+  }
+
+  footer{
+    text-align:center; padding:40px 24px 60px; color:var(--text-faint); font-size:12.5px;
+    font-family:var(--mono); border-top:1px solid var(--border-soft); margin-top:20px;
+  }
+
+  @media (max-width:640px){
+    .term-body{padding:26px 18px;}
+    .level-row{grid-template-columns:1fr; gap:4px;}
+    .stat{min-width:45%;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="noise-layer"></div>
+
+<div class="hero">
+  <div class="term-window">
+    <div class="term-titlebar">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <div class="term-title">root@kali: ~/field-guide</div>
+    </div>
+    <div class="term-body">
+      <p class="eyebrow">Visual · Practical · Ethical</p>
+      <h1 class="hero-title">100 Essential Kali Linux<br><span class="dim">Commands, Field Guide</span></h1>
+      <p class="hero-sub">Every command explained the same way: what it does, how you type it, what comes back on screen, and when it actually earns a place in your workflow.</p>
+      <div class="typed-line"><span class="prompt">guide@kali:~$</span> <span id="typed"></span><span class="cursor"></span></div>
+      <div class="stat-row">
+        <div class="stat"><div class="stat-num"><span>100</span></div><div class="stat-label">Commands catalogued</div></div>
+        <div class="stat"><div class="stat-num"><span>5</span></div><div class="stat-label">Skill categories</div></div>
+        <div class="stat"><div class="stat-num"><span>20</span></div><div class="stat-label">Learn-first picks</div></div>
+        <div class="stat"><div class="stat-num"><span>6</span></div><div class="stat-label">Duplicate entries</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="safety">
+  <div class="safety-box">
+    <span class="icon">⚠</span>
+    <div><b>Golden rule before you type anything here:</b> run these commands only against your own machine, a deliberately vulnerable lab, or a system you have explicit permission to test. Anything involving credential attacks, payload generation, interception, or exploitation is shown here only as a safe lab concept — never as an operational instruction.</div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="controls-inner">
+    <div class="search-wrap">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="search" type="text" placeholder="grep a command, e.g. nmap, forensics, wireless…" autocomplete="off">
+    </div>
+    <div class="chip-row" id="catChips"></div>
+    <div class="chip-row">
+      <div class="chip star" id="starChip">★ Learn-first 20</div>
+    </div>
+  </div>
+</div>
+
+<div class="result-count" id="resultCount"></div>
+
+<div class="grid-wrap">
+  <div class="cmd-grid" id="grid"></div>
+</div>
+
+<div class="section">
+  <div class="section-head">
+    <p class="section-eyebrow">Mental model</p>
+    <h2 class="section-title">From recon to report</h2>
+    <p class="section-sub">Every tool above slots into one stage of this pipeline. Exploitation only ever happens where it's explicitly authorized.</p>
+  </div>
+  <div class="flow-strip" id="flowStrip"></div>
+</div>
+
+<div class="section">
+  <div class="section-head">
+    <p class="section-eyebrow">Learning path</p>
+    <h2 class="section-title">Beginner to advanced, in order</h2>
+    <p class="section-sub">Work down this list rather than across the full 100 — each level assumes the one above it.</p>
+  </div>
+  <div class="level-list" id="levelList"></div>
+</div>
+
+<div class="section">
+  <div class="golden-rule">
+    <div class="gr-line"><span class="hl">OWN IT</span></div>
+    <div class="gr-or">— or —</div>
+    <div class="gr-line">HAVE EXPLICIT PERMISSION</div>
+    <div class="gr-or">— or —</div>
+    <div class="gr-line">USE A DEDICATED LAB</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-head">
+    <p class="section-eyebrow">Quick reference</p>
+    <h2 class="section-title">Where to start, by category</h2>
+  </div>
+  <table class="ref-table" id="refTable"></table>
+</div>
+
+<footer>
+  Built as a practical Kali Linux learning reference — use it ethically, document your work, and always test inside an authorized environment.
+</footer>
+
+<script>
+const DATA = [{"num":1,"name":"ifconfig","suffix":"","category":"\ud83c\udf10 1--15 \u00b7 Networking Fundamentals","purpose":"Displays network interfaces and IP configuration.","syntax":"ifconfig","all_syntax":["ifconfig"],"output":"eth0: flags=...\n        inet 192.168.56.10  netmask 255.255.255.0\n        ether 08:00:27:xx:xx:xx\nlo:     inet 127.0.0.1","useful_for":"Quickly checking interfaces, IP addresses and MAC addresses.","notes":["Modern alternative: `ip addr` is preferred on many Linux systems."],"is_duplicate":false},{"num":2,"name":"ping","suffix":"","category":"\ud83c\udf10 1--15 \u00b7 Networking Fundamentals","purpose":"Tests basic IP connectivity.","syntax":"ping -c 4 127.0.0.1","all_syntax":["ping -c 4 127.0.0.1"],"output":"PING 127.0.0.1 ...\n64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.040 ms\n64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.035 ms\n\n--- 127.0.0.1 ping statistics ---\n4 packets transmitted, 4 received, 0% packet loss","useful_for":"Checking whether a host is reachable and measuring latency.","notes":[],"is_duplicate":false},{"num":3,"name":"netstat","suffix":"","category":"\ud83c\udf10 1--15 \u00b7 Networking Fundamentals","purpose":"Displays network connections, listening sockets and routing information.","syntax":"netstat -tuln","all_syntax":["netstat -tuln"],"output":"Proto Local Address       State\ntcp   0.0.0.0:22         LISTEN\ntcp   127.0.0.1:631      LISTEN\nudp   0.0.0.0:68","useful_for":"","notes":["Modern alternative: `ss -tuln`."],"is_duplicate":false},{"num":4,"name":"nmap","suffix":"","category":"\ud83c\udf10 1--15 \u00b7 Networking Fundamentals","purpose":"Discovers hosts, ports and services during authorized security assessments.","syntax":"nmap 127.0.0.1","all_syntax":["nmap 127.0.0.1"],"output":"Starting Nmap ...\nPORT     STATE SERVICE\n22/tcp   open  ssh\n80/tcp   open  http\n631/tcp  open  ipp","useful_for":"","notes":[],"is_duplicate":false},{"num":5,"name":"arp","suffix":"","category":"\ud83c\udf10 1--15 \u00b7 Networking Fundamentals","purpose":"Displays the ARP cache.","syntax":"arp -a","all_syntax":["arp -a"],"output":"? (192.168.56.1) at 08:00:27:xx:xx:xx [ether] on eth0","useful_for":"","notes":["Modern alternative: `ip neigh`."],"is_duplicate":false},{"num":6,"name":"dig","suffix":"","category":"\ud83c\udf10 1--15 \u00b7 Networking Fundamentals","purpose":"Performs DNS queries.","syntax":"dig example.com","all_syntax":["dig example.com"],"output":";; ANSWER SECTION:\nexample.com.   300   IN   A   93.184.216.34","useful_for":"Understanding DNS records and troubleshooting name resolution.","notes":[],"is_duplicate":false},{"num":7,"name":"whois","suffix":"","category":"\ud83c\udf10 1--15 \u00b7 Networking Fundamentals","purpose":"Queries public domain registration information where available.","syntax":"whois example.com","all_syntax":["whois example.com"],"output":"Domain Name: EXAMPLE.COM\nRegistrar: ...\nCreation Date: ...\nRegistry Expiry Date: ...","useful_for":"","notes":[],"is_duplicate":false},{"num":8,"name":"host","suffix":"","category":"\ud83c\udf10 1--15 \u00b7 Networking Fundamentals","purpose":"Performs simple DNS lookups.","syntax":"host example.com","all_syntax":["host example.com"],"output":"example.com has address 93.184.216.34","useful_for":"","notes":[],"is_duplicate":false},{"num":9,"name":"traceroute","suffix":"","category":"\ud83c\udf10 1--15 \u00b7 Networking Fundamentals","purpose":"Shows the network path toward a destination.","syntax":"traceroute example.com","all_syntax":["traceroute example.com"],"output":"1  192.168.1.1\n2  10.0.0.1\n3  ...\n4  ...","useful_for":"Routing and connectivity troubleshooting.","notes":[],"is_duplicate":false},{"num":10,"name":"route","suffix":"","category":"\ud83c\udf10 1--15 \u00b7 Networking Fundamentals","purpose":"Displays the kernel routing table.","syntax":"route -n","all_syntax":["route -n"],"output":"Destination     Gateway       Genmask         Iface\n0.0.0.0         192.168.1.1   0.0.0.0         eth0\n192.168.1.0     0.0.0.0       255.255.255.0   eth0","useful_for":"","notes":["Modern alternative: `ip route`."],"is_duplicate":false},{"num":11,"name":"iptables","suffix":"","category":"\ud83c\udf10 1--15 \u00b7 Networking Fundamentals","purpose":"Views and manages Linux firewall rules.","syntax":"sudo iptables -L -n -v","all_syntax":["sudo iptables -L -n -v"],"output":"Chain INPUT (policy ACCEPT)\n pkts bytes target  prot opt in out source destination\n ...","useful_for":"Firewall auditing and troubleshooting.","notes":["Do not change firewall policies on systems you do not administer."],"is_duplicate":false},{"num":12,"name":"tcpdump","suffix":"","category":"\ud83c\udf10 1--15 \u00b7 Networking Fundamentals","purpose":"Captures packets from a network interface.","syntax":"sudo tcpdump -i lo -c 5","all_syntax":["sudo tcpdump -i lo -c 5"],"output":"12:10:01 IP localhost.12345 > localhost.8080: Flags [S]\n12:10:01 IP localhost.8080 > localhost.12345: Flags [S.]","useful_for":"Packet-level troubleshooting and network-security analysis.","notes":[],"is_duplicate":false},{"num":13,"name":"wireshark","suffix":"","category":"\ud83c\udf10 1--15 \u00b7 Networking Fundamentals","purpose":"GUI packet analyzer.","syntax":"wireshark","all_syntax":["wireshark"],"output":"\u250c\u2500\u2500\u2500\u2500 Packet List \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502 No. \u2502 Time \u2502 Source \u2502 Destination \u2502 Protocol  \u2502\n\u2502  1  \u2502 0.01 \u2502 Kali   \u2502 Server      \u2502 TCP       \u2502\n\u2502  2  \u2502 0.02 \u2502 Server \u2502 Kali        \u2502 TCP       \u2502\n\u251c\u2500\u2500\u2500\u2500 Packet Details \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 Ethernet \u2192 IPv4 \u2192 TCP \u2192 Application Data      \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518","useful_for":"","notes":[],"is_duplicate":false},{"num":14,"name":"ssh","suffix":"","category":"\ud83c\udf10 1--15 \u00b7 Networking Fundamentals","purpose":"Secure remote shell access.","syntax":"ssh username@127.0.0.1","all_syntax":["ssh username@127.0.0.1"],"output":"username@127.0.0.1's password:\nLinux kali ...\nusername@kali:~$","useful_for":"Authorized administration and remote lab access.","notes":[],"is_duplicate":false},{"num":15,"name":"nc","suffix":"Netcat","category":"\ud83c\udf10 1--15 \u00b7 Networking Fundamentals","purpose":"Flexible TCP/UDP networking utility.","syntax":"nc -l 127.0.0.1 9000","all_syntax":["nc -l 127.0.0.1 9000","nc 127.0.0.1 9000"],"output":"hello from terminal B","useful_for":"","notes":[],"is_duplicate":false},{"num":16,"name":"metasploit","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"Security-testing framework containing modules for authorized lab assessments.","syntax":"msfconsole","all_syntax":["msfconsole"],"output":"msf6 >","useful_for":"","notes":[],"is_duplicate":false},{"num":17,"name":"hydra","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"Automated login/password auditing tool.","syntax":"hydra -h","all_syntax":["hydra -h"],"output":"Hydra v...\nSyntax: hydra [options] target service","useful_for":"","notes":[],"is_duplicate":false},{"num":18,"name":"john","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"Password-hash auditing/recovery.","syntax":"john --help","all_syntax":["john --help"],"output":"Hash \u2192 John \u2192 Candidate testing \u2192 Recovered/Unrecovered","useful_for":"","notes":[],"is_duplicate":false},{"num":19,"name":"aircrack-ng","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"Wireless security auditing suite.","syntax":"aircrack-ng --help","all_syntax":["aircrack-ng --help"],"output":"Authorized Wi-Fi\n      \u2193\nCapture/inspect traffic\n      \u2193\nAnalyze authentication\n      \u2193\nEvaluate security configuration\n      \u2193\nHarden network","useful_for":"","notes":[],"is_duplicate":false},{"num":20,"name":"reaver","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"Audits WPS security.","syntax":"reaver --help","all_syntax":["reaver --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":21,"name":"sqlmap","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"Automates SQL-injection testing against authorized applications.","syntax":"sqlmap --help","all_syntax":["sqlmap --help"],"output":"OWASP Juice Shop / local test app\n          \u2193\nIdentify input\n          \u2193\nTest authorization-controlled endpoint\n          \u2193\nReview findings\n          \u2193\nFix SQL injection","useful_for":"","notes":[],"is_duplicate":false},{"num":22,"name":"enum4linux","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"Enumerates information from Windows/Samba environments.","syntax":"enum4linux -h","all_syntax":["enum4linux -h"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":23,"name":"nikto","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"Checks web servers for common security issues and unsafe configurations.","syntax":"nikto -h http://127.0.0.1:8080","all_syntax":["nikto -h http://127.0.0.1:8080"],"output":"- Nikto v...\n+ Target IP: 127.0.0.1\n+ Target Port: 8080\n+ Server: ...\n+ Retrieved headers","useful_for":"","notes":[],"is_duplicate":false},{"num":24,"name":"dirb","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"Discovers web directories/files on an authorized target.","syntax":"dirb http://127.0.0.1:8080","all_syntax":["dirb http://127.0.0.1:8080"],"output":"---- Scanning URL: http://127.0.0.1:8080/ ----\n+ http://127.0.0.1:8080/admin/\n+ http://127.0.0.1:8080/assets/","useful_for":"","notes":[],"is_duplicate":false},{"num":25,"name":"wpscan","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"Security scanner for WordPress installations.","syntax":"wpscan --help","all_syntax":["wpscan --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":26,"name":"burp","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"GUI platform for web application security testing.","syntax":"","all_syntax":[],"output":"Browser\n   \u2193\nBurp Proxy\n   \u2193\nTest Web Application\n   \u2193\nInspect HTTP request/response","useful_for":"","notes":[],"is_duplicate":false},{"num":27,"name":"sqlninja","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"Older SQL Server-focused SQL injection testing tool.","syntax":"sqlninja --help","all_syntax":["sqlninja --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":28,"name":"ettercap","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"Network traffic analysis and authorized MITM testing.","syntax":"ettercap --help","all_syntax":["ettercap --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":29,"name":"snort","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"Network intrusion detection/prevention platform.","syntax":"snort -V","all_syntax":["snort -V"],"output":",,_     -*> Snort! <*-\nVersion ...","useful_for":"","notes":[],"is_duplicate":false},{"num":30,"name":"openvas","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"Vulnerability assessment platform.","syntax":"command -v openvas","all_syntax":["command -v openvas"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":31,"name":"armitage","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"Historical GUI for Metasploit.","syntax":"command -v armitage","all_syntax":["command -v armitage"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":32,"name":"xsser","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"XSS security-testing tool.","syntax":"xsser --help","all_syntax":["xsser --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":33,"name":"dirbuster","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"GUI directory/content discovery tool.","syntax":"dirbuster","all_syntax":["dirbuster"],"output":"Target: http://127.0.0.1:8080\nWordlist: common.txt\n\n[\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2591\u2591\u2591\u2591] 72%\n\nFound:\n /admin\n /images\n /login","useful_for":"","notes":[],"is_duplicate":false},{"num":34,"name":"hashcat","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"High-performance password-hash auditing tool.","syntax":"hashcat --help","all_syntax":["hashcat --help"],"output":"Hash\n \u2193\nHashcat\n \u2193\nCandidate verification\n \u2193\nAudit result","useful_for":"","notes":[],"is_duplicate":false},{"num":35,"name":"volatility","suffix":"","category":"\ud83e\udde8 16--35 \u00b7 Security Assessment & Forensics","purpose":"Memory-forensics framework.","syntax":"vol -h","all_syntax":["vol -h"],"output":"Memory image\n     \u2193\nIdentify OS/profile\n     \u2193\nProcesses\n     \u2193\nNetwork artifacts\n     \u2193\nLoaded modules\n     \u2193\nEvidence report","useful_for":"","notes":[],"is_duplicate":false},{"num":36,"name":"autopsy","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"GUI digital-forensics platform.","syntax":"autopsy","all_syntax":["autopsy"],"output":"Evidence source \u2192 Case \u2192 Analysis \u2192 Artifacts \u2192 Timeline \u2192 Report","useful_for":"","notes":[],"is_duplicate":false},{"num":37,"name":"gobuster","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"Fast content/DNS enumeration utility.","syntax":"gobuster --help","all_syntax":["gobuster --help","gobuster dir -u http://127.0.0.1:8080 -w /path/to/your/wordlist.txt"],"output":"/admin       (Status: 200)\n/login       (Status: 200)\n/assets      (Status: 301)","useful_for":"","notes":[],"is_duplicate":false},{"num":38,"name":"dnsrecon","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"DNS reconnaissance.","syntax":"dnsrecon -d example.com","all_syntax":["dnsrecon -d example.com"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":39,"name":"steghide","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"Works with supported image/audio formats for steganography.","syntax":"steghide info image.jpg","all_syntax":["steghide info image.jpg"],"output":"filename: image.jpg\nformat: jpeg\ncapacity: ...","useful_for":"","notes":[],"is_duplicate":false},{"num":40,"name":"stegcracker","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"Steganography password-auditing utility.","syntax":"stegcracker --help","all_syntax":["stegcracker --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":41,"name":"sshuttle","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"Creates a VPN-like connection over SSH for authorized networks.","syntax":"sshuttle --help","all_syntax":["sshuttle --help"],"output":"Local applications\n       \u2193\nsshuttle\n       \u2193\nSSH server\n       \u2193\nAuthorized remote network","useful_for":"","notes":[],"is_duplicate":false},{"num":42,"name":"mitmproxy","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"Interactive HTTP/HTTPS debugging proxy.","syntax":"mitmproxy","all_syntax":["mitmproxy"],"output":"Browser \u2192 mitmproxy \u2192 Local test server\n           \u2502\n           \u251c\u2500\u2500 Request\n           \u2514\u2500\u2500 Response","useful_for":"","notes":[],"is_duplicate":false},{"num":43,"name":"hash-identifier","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"Helps identify likely hash algorithms.","syntax":"hash-identifier","all_syntax":["hash-identifier"],"output":"HASH: [your lab hash]\nPossible Hashes:\n[+] MD5\n[+] ...","useful_for":"","notes":[],"is_duplicate":false},{"num":44,"name":"samdump2","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"Extracts password-hash information from Windows SAM/SYSTEM data for forensic/security auditing.","syntax":"samdump2 --help","all_syntax":["samdump2 --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":45,"name":"radare2","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"Reverse-engineering framework.","syntax":"r2 /path/to/your/test_binary","all_syntax":["r2 /path/to/your/test_binary"],"output":"[0x00000000]> aaa\n[0x00000000]> afl","useful_for":"","notes":[],"is_duplicate":false},{"num":46,"name":"airgeddon","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"Wireless auditing framework.","syntax":"airgeddon","all_syntax":["airgeddon"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":47,"name":"mitm6","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"IPv6 security-testing tool.","syntax":"mitm6 --help","all_syntax":["mitm6 --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":48,"name":"mitmAP","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"Framework for creating test access points and researching wireless traffic behavior.","syntax":"mitmap --help","all_syntax":["mitmap --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":49,"name":"dmitry","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"Information-gathering utility.","syntax":"dmitry --help","all_syntax":["dmitry --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":50,"name":"theHarvester","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"Collects publicly available information from supported sources.","syntax":"theHarvester -h","all_syntax":["theHarvester -h"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":51,"name":"exiftool","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"Reads and writes file metadata.","syntax":"exiftool photo.jpg","all_syntax":["exiftool photo.jpg"],"output":"File Name       : photo.jpg\nFile Type       : JPEG\nImage Width     : 1920\nImage Height    : 1080\nCreate Date     : ...","useful_for":"","notes":[],"is_duplicate":false},{"num":52,"name":"binwalk","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"Analyzes binary/firmware files and identifies embedded data.","syntax":"binwalk sample.bin","all_syntax":["binwalk sample.bin"],"output":"DECIMAL       HEXADECIMAL     DESCRIPTION\n0             0x0             ...\n1024          0x400           JPEG image data","useful_for":"","notes":[],"is_duplicate":false},{"num":53,"name":"foremost","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"Recovers files from raw data using file signatures.","syntax":"foremost -h","all_syntax":["foremost -h"],"output":"Disk image \u2192 Signature scan \u2192 Recovered files","useful_for":"","notes":[],"is_duplicate":false},{"num":54,"name":"scalpel","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"File-carving utility.","syntax":"scalpel -h","all_syntax":["scalpel -h"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":55,"name":"ssh-keygen","suffix":"","category":"\ud83d\udd0e 36--55 \u00b7 Forensics, Recon & File Analysis","purpose":"Generates SSH keys.","syntax":"ssh-keygen -t ed25519 -C \"lab-key\"","all_syntax":["ssh-keygen -t ed25519 -C \"lab-key\""],"output":"Generating public/private ed25519 key pair.\nEnter file in which to save the key ...\nYour identification has been saved...\nYour public key has been saved...","useful_for":"","notes":[],"is_duplicate":false},{"num":56,"name":"john","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"John the Ripper password-auditing tool.","syntax":"john --help","all_syntax":["john --help"],"output":"","useful_for":"","notes":["This is a duplicate of #18 in the original list."],"is_duplicate":true},{"num":57,"name":"tcpflow","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"Reconstructs TCP conversations for traffic analysis.","syntax":"tcpflow -h","all_syntax":["tcpflow -h"],"output":"Packets \u2192 TCP stream reconstruction \u2192 Per-flow files \u2192 Analysis","useful_for":"","notes":[],"is_duplicate":false},{"num":58,"name":"davtest","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"Tests WebDAV functionality and configuration.","syntax":"davtest --help","all_syntax":["davtest --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":59,"name":"sslscan","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"Examines SSL/TLS configuration.","syntax":"sslscan 127.0.0.1:443","all_syntax":["sslscan 127.0.0.1:443"],"output":"Testing SSL server 127.0.0.1 on port 443\nSupported Server Cipher(s):\n...","useful_for":"","notes":[],"is_duplicate":false},{"num":60,"name":"wifite","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"Automates parts of wireless security auditing.","syntax":"wifite --help","all_syntax":["wifite --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":61,"name":"tshark","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"Command-line Wireshark.","syntax":"tshark -D","all_syntax":["tshark -D","sudo tshark -i lo -c 5"],"output":"1. eth0\n2. lo\n3. any","useful_for":"","notes":[],"is_duplicate":false},{"num":62,"name":"macchanger","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"Displays or changes the MAC address of an interface.","syntax":"macchanger --help","all_syntax":["macchanger --help","ip link"],"output":"","useful_for":"","notes":["Changing a MAC can disrupt network connectivity and may violate","network policies."],"is_duplicate":false},{"num":63,"name":"nbtscan","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"Queries NetBIOS information on authorized Windows networks.","syntax":"nbtscan -h","all_syntax":["nbtscan -h"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":64,"name":"ike-scan","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"Discovers/fingerprints IKE/IPsec VPN endpoints.","syntax":"ike-scan --help","all_syntax":["ike-scan --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":65,"name":"hashcat-utils","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"Supporting utilities for Hashcat workflows.","syntax":"command -v hashcat-utils","all_syntax":["command -v hashcat-utils"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":66,"name":"veil","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"Historical payload-generation/AV-evasion framework.","syntax":"veil --help","all_syntax":["veil --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":67,"name":"bettercap","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"Network security-testing framework.","syntax":"bettercap --help","all_syntax":["bettercap --help"],"output":"Network discovery\nTraffic visibility\nProtocol analysis\nDefensive monitoring","useful_for":"","notes":[],"is_duplicate":false},{"num":68,"name":"ferret","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"Historical network-sniffing/session-analysis utility.","syntax":"ferret --help","all_syntax":["ferret --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":69,"name":"maltego","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"GUI-based OSINT and link analysis.","syntax":"maltego","all_syntax":["maltego"],"output":"\u250c\u2500\u2500 Domain\n                 \u2502\nPerson \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500 Email\n                 \u2502\n                 \u2514\u2500\u2500 Organization\n                       \u2502\n                       \u2514\u2500\u2500 Website","useful_for":"","notes":[],"is_duplicate":false},{"num":70,"name":"pdf-parser","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"Inspects the internal structure of PDF files.","syntax":"pdf-parser.py --help","all_syntax":["pdf-parser.py --help"],"output":"PDF\n \u2193\nObjects\n \u2193\nStreams\n \u2193\nJavaScript / embedded objects\n \u2193\nForensic analysis","useful_for":"","notes":[],"is_duplicate":false},{"num":71,"name":"openvpn","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"VPN client/server software.","syntax":"openvpn --version","all_syntax":["openvpn --version"],"output":"Client \u2192 Encrypted tunnel \u2192 VPN server \u2192 Private network","useful_for":"","notes":[],"is_duplicate":false},{"num":72,"name":"msfvenom","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"Metasploit payload-generation utility.","syntax":"msfvenom --help","all_syntax":["msfvenom --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":73,"name":"dnsenum","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"DNS enumeration.","syntax":"dnsenum --help","all_syntax":["dnsenum --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":74,"name":"p0f","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"Passive OS fingerprinting.","syntax":"p0f -h","all_syntax":["p0f -h"],"output":"Observed packets\n       \u2193\nTCP/IP characteristics\n       \u2193\nFingerprint\n       \u2193\nLikely OS family","useful_for":"","notes":[],"is_duplicate":false},{"num":75,"name":"thc-ipv6","suffix":"","category":"\ud83d\udef0\ufe0f 56--75 \u00b7 Network, Wireless & System Security","purpose":"Collection of IPv6 security-testing tools.","syntax":"thc-ipv6","all_syntax":["thc-ipv6"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":76,"name":"chntpw","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Offline Windows password/account database editing tool.","syntax":"chntpw -h","all_syntax":["chntpw -h"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":77,"name":"pcredz","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Extracts credential artifacts from packet captures/memory-related data in supported scenarios.","syntax":"pcredz --help","all_syntax":["pcredz --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":78,"name":"exploitdb","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Search interface/tooling for the Exploit Database.","syntax":"searchsploit --help","all_syntax":["searchsploit --help","searchsploit apache"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":79,"name":"dmitry","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Information gathering.","syntax":"dmitry --help","all_syntax":["dmitry --help"],"output":"","useful_for":"","notes":["Duplicate of #49 in the original list."],"is_duplicate":true},{"num":80,"name":"yara","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Pattern-matching engine used in malware analysis and threat hunting.","syntax":"yara rule.yar sample.txt","all_syntax":["yara rule.yar sample.txt"],"output":"rule suspicious_string\n{\n    strings:\n        $a = \"example-test-string\"\n\n    condition:\n        $a\n}","useful_for":"Malware triage, threat hunting and file classification.","notes":[],"is_duplicate":false},{"num":81,"name":"db_nmap","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Runs Nmap from inside Metasploit.","syntax":"msfconsole","all_syntax":["msfconsole"],"output":"msf6 > db_nmap 127.0.0.1","useful_for":"","notes":[],"is_duplicate":false},{"num":82,"name":"msfpc","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Metasploit payload-generation helper.","syntax":"msfpc --help","all_syntax":["msfpc --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":83,"name":"mac-robber","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Collects MAC-time metadata from files/directories for forensic timelines.","syntax":"mac-robber -h","all_syntax":["mac-robber -h"],"output":"Files \u2192 MAC timestamps \u2192 Timeline analysis","useful_for":"","notes":[],"is_duplicate":false},{"num":84,"name":"enumiax","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Enumerates information from Asterisk/IAX systems.","syntax":"enumiax --help","all_syntax":["enumiax --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":85,"name":"ipcalc","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Calculates IPv4/IPv6 network parameters.","syntax":"ipcalc 192.168.56.10/24","all_syntax":["ipcalc 192.168.56.10/24"],"output":"Address:   192.168.56.10\nNetmask:   255.255.255.0\nNetwork:   192.168.56.0/24\nBroadcast: 192.168.56.255\nHosts:     192.168.56.1 - 192.168.56.254","useful_for":"","notes":[],"is_duplicate":false},{"num":86,"name":"mimikatz","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Windows credential/security research tool.","syntax":"","all_syntax":[],"output":"Mimikatz \u2192 Windows authentication material \u2192 Security analysis","useful_for":"","notes":[],"is_duplicate":false},{"num":87,"name":"wifiphisher","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Wireless security-awareness/phishing simulation framework.","syntax":"wifiphisher --help","all_syntax":["wifiphisher --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":88,"name":"metagoofil","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Collects metadata from publicly available documents.","syntax":"metagoofil --help","all_syntax":["metagoofil --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":89,"name":"recon-ng","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Modular web reconnaissance framework.","syntax":"recon-ng","all_syntax":["recon-ng"],"output":"[recon-ng][default] >","useful_for":"","notes":[],"is_duplicate":false},{"num":90,"name":"exploitdb","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Exploit Database search/reference tooling.","syntax":"searchsploit --help","all_syntax":["searchsploit --help"],"output":"","useful_for":"","notes":["Duplicate of #78."],"is_duplicate":true},{"num":91,"name":"enumiax","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Asterisk/IAX enumeration.","syntax":"enumiax --help","all_syntax":["enumiax --help"],"output":"","useful_for":"","notes":["Duplicate of #84."],"is_duplicate":true},{"num":92,"name":"golismero","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Older web security assessment framework.","syntax":"golismero --help","all_syntax":["golismero --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":93,"name":"sparta","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"GUI-based network infrastructure penetration-testing interface.","syntax":"sparta","all_syntax":["sparta"],"output":"Target\n  \u2193\nDiscovery\n  \u2193\nServices\n  \u2193\nEnumeration\n  \u2193\nFindings","useful_for":"","notes":[],"is_duplicate":false},{"num":94,"name":"ike-scan","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"VPN/IKE fingerprinting.","syntax":"ike-scan --help","all_syntax":["ike-scan --help"],"output":"","useful_for":"","notes":["Duplicate of #64."],"is_duplicate":true},{"num":95,"name":"nmapsi4","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"GUI frontend for Nmap in versions/environments where it is available.","syntax":"command -v nmapsi4","all_syntax":["command -v nmapsi4","nmap --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":96,"name":"socat","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Multipurpose bidirectional data relay.","syntax":"socat TCP-LISTEN:9001,bind=127.0.0.1,reuseaddr,fork -","all_syntax":["socat TCP-LISTEN:9001,bind=127.0.0.1,reuseaddr,fork -","socat - TCP:127.0.0.1:9001"],"output":"hello","useful_for":"","notes":[],"is_duplicate":false},{"num":97,"name":"dirbuster-ng","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Directory/content discovery.","syntax":"dirbuster-ng --help","all_syntax":["dirbuster-ng --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":98,"name":"davtest","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Tests WebDAV configuration.","syntax":"davtest --help","all_syntax":["davtest --help"],"output":"","useful_for":"","notes":["Duplicate of #58."],"is_duplicate":true},{"num":99,"name":"udis86","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"x86/x86-64 disassembly library/tooling.","syntax":"udis86 --help","all_syntax":["udis86 --help"],"output":"","useful_for":"","notes":[],"is_duplicate":false},{"num":100,"name":"lynis","suffix":"","category":"\ud83e\uddea 76--100 \u00b7 Windows, Recon, Analysis & Utilities","purpose":"Security auditing and hardening assessment.","syntax":"sudo lynis audit system","all_syntax":["sudo lynis audit system"],"output":"[+] System Tools\n[+] Plugins Enabled\n[+] Security Tests\n[+] Hardening Index\n\nSuggestions:\n- Review SSH configuration\n- Review firewall configuration\n- Review unnecessary services","useful_for":"Defensive Linux hardening.","notes":[],"is_duplicate":false}];
+
+const STAR20 = ["ip","ping","ss","ip route","dig","traceroute","nmap","tcpdump","tshark","wireshark","ssh","gobuster","burp","nikto","exiftool","binwalk","volatility","yara","radare2","lynis"];
+
+function normalize(s){ return (s||"").toLowerCase().replace(/[^a-z0-9]/g,''); }
+const starSet = new Set(STAR20.map(normalize));
+
+const categories = [...new Set(DATA.map(d=>d.category))];
+let activeCat = "all";
+let starOnly = false;
+let query = "";
+
+const catChips = document.getElementById('catChips');
+const allChip = document.createElement('div');
+allChip.className = 'chip active';
+allChip.textContent = 'All categories';
+allChip.onclick = () => setCat('all', allChip);
+catChips.appendChild(allChip);
+categories.forEach(cat => {
+  const chip = document.createElement('div');
+  chip.className = 'chip';
+  const short = cat.replace(/^[^\s]+\s/, '').replace(/^\d+--\d+\s·\s/, '');
+  chip.textContent = short;
+  chip.onclick = () => setCat(cat, chip);
+  catChips.appendChild(chip);
+});
+function setCat(cat, el){
+  activeCat = cat;
+  [...catChips.children].forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+document.getElementById('starChip').onclick = function(){
+  starOnly = !starOnly;
+  this.classList.toggle('active', starOnly);
+  render();
+};
+document.getElementById('search').addEventListener('input', e=>{
+  query = e.target.value.toLowerCase().trim();
+  render();
+});
+
+function escapeHtml(s){
+  return (s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function cardHtml(cmd){
+  const isStar = starSet.has(normalize(cmd.name));
+  const syntax = cmd.syntax ? escapeHtml(cmd.syntax) : null;
+  const output = cmd.output ? escapeHtml(cmd.output) : null;
+  let detail = '';
+  if(syntax){
+    detail += `<div class="detail-label">Syntax</div><div class="term-pane"><span class="prompt">$</span> ${syntax}</div>`;
+  }
+  if(output){
+    detail += `<div class="detail-label">Typical output</div><div class="term-pane out">${output}</div>`;
+  }
+  if(cmd.useful_for){
+    detail += `<div class="detail-label">Useful for</div><div class="useful-text">${escapeHtml(cmd.useful_for)}</div>`;
+  }
+  if(cmd.notes && cmd.notes.length){
+    cmd.notes.forEach(n=>{
+      const dup = /duplicate of/i.test(n);
+      detail += `<div class="note-box${dup?' dup':''}">${dup?'⧉':'ⓘ'} ${escapeHtml(n)}</div>`;
+    });
+  }
+  if(!detail){
+    detail = `<div class="useful-text">See the command's help flag for full usage — this entry is a light utility with no extended notes.</div>`;
+  }
+  return `
+  <div class="card" data-id="${cmd.num}">
+    <div class="card-head">
+      <span class="card-num">#${String(cmd.num).padStart(3,'0')}</span>
+      <span class="card-name">${escapeHtml(cmd.name)}</span>
+      ${isStar ? '<span class="badge-star" title="Learn-first pick">★</span>' : ''}
+      ${cmd.is_duplicate ? '<span class="badge-dup">dup</span>' : ''}
+      <span class="chevron">▸</span>
+    </div>
+    <div class="card-purpose">${escapeHtml(cmd.purpose || "Purpose covered in the tool's own help output.")}</div>
+    <div class="card-detail"><div class="detail-inner">${detail}</div></div>
+  </div>`;
+}
+
+function render(){
+  const grid = document.getElementById('grid');
+  let filtered = DATA.filter(cmd=>{
+    if(activeCat!=='all' && cmd.category!==activeCat) return false;
+    if(starOnly && !starSet.has(normalize(cmd.name))) return false;
+    if(query){
+      const hay = (cmd.name+' '+cmd.purpose+' '+cmd.useful_for+' '+cmd.category).toLowerCase();
+      if(!hay.includes(query)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('resultCount').textContent = `${filtered.length} command${filtered.length===1?'':'s'} matched`;
+
+  if(filtered.length===0){
+    grid.innerHTML = `<div class="no-results">no matches — try a shorter grep pattern</div>`;
+    return;
+  }
+
+  if(activeCat!=='all' || query || starOnly){
+    // flat grid, no category headings needed when filtered to one or search active
+    grid.innerHTML = filtered.map(cardHtml).join('');
+  } else {
+    let html = '';
+    categories.forEach(cat=>{
+      const items = filtered.filter(c=>c.category===cat);
+      if(!items.length) return;
+      html += `<div class="cat-heading">${escapeHtml(cat)}</div>`;
+      html += items.map(cardHtml).join('');
+    });
+    grid.innerHTML = html;
+  }
+
+  grid.querySelectorAll('.card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      card.classList.toggle('open');
+    });
+  });
+}
+render();
+
+// Typed intro line
+const phrases = [
+  "man <command> before you run it in production",
+  "start every session in an isolated lab",
+  "recon → discover → enumerate → validate → report"
+];
+let pi=0, ci=0, deleting=false;
+const typedEl = document.getElementById('typed');
+function tick(){
+  const phrase = phrases[pi];
+  if(!deleting){
+    ci++;
+    typedEl.textContent = phrase.slice(0, ci);
+    if(ci===phrase.length){ deleting=true; setTimeout(tick, 1600); return; }
+  } else {
+    ci--;
+    typedEl.textContent = phrase.slice(0, ci);
+    if(ci===0){ deleting=false; pi=(pi+1)%phrases.length; }
+  }
+  setTimeout(tick, deleting?22:38);
+}
+if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+  tick();
+} else {
+  typedEl.textContent = phrases[0];
+}
+
+// Flow strip
+const flow = [
+  ["Recon","Passive info gathering"],
+  ["Discovery","Find live hosts & ports"],
+  ["Enumeration","Map services & versions"],
+  ["Vuln analysis","Assess weaknesses"],
+  ["Validation","Controlled, authorized checks"],
+  ["Exploitation*","Only if explicitly authorized"],
+  ["Forensics","Evidence & artifacts"],
+  ["Report","Remediation guidance"]
+];
+document.getElementById('flowStrip').innerHTML = flow.map((f,i)=>
+  `<div class="flow-step"><div class="fnum">0${i+1}</div><div class="flabel">${f[0]}</div><div class="fdesc">${f[1]}</div></div>`
+).join('');
+
+// Learning levels
+const levels = [
+  ["L1","Linux & Networking", ["ip","ifconfig","ping","ss","netstat","arp","ip route","dig","host","traceroute","tcpdump"], "Understand interfaces → IP → routing → DNS → packets."],
+  ["L2","Network Recon", ["nmap","dnsrecon","dnsenum","whois","dmitry","theHarvester","p0f","nbtscan"], "Understand what an authorized tester can discover."],
+  ["L3","Web Security", ["Burp Suite","nikto","gobuster","dirb","wpscan","sqlmap","xsser","davtest","sslscan"], "HTTP, auth, input validation, sessions, TLS, common web bugs."],
+  ["L4","Traffic Analysis", ["tcpdump","Wireshark","tshark","tcpflow","mitmproxy","bettercap"], "Learn how packets become application-level conversations."],
+  ["L5","Digital Forensics", ["Autopsy","Volatility","Foremost","Scalpel","Binwalk","ExifTool","YARA","mac-robber","radare2"], "Acquire → inspect → analyze → correlate → report."],
+  ["L6","Wireless Security", ["aircrack-ng","reaver","wifite","airgeddon","wifiphisher"], "Wi-Fi auth, encryption, WPS and rogue-AP risk — in a controlled lab."]
+];
+document.getElementById('levelList').innerHTML = levels.map(l=>
+  `<div class="level-row">
+    <div class="level-tag">${l[0]}</div>
+    <div><div class="level-name">${l[1]}</div><div class="level-goal">${l[3]}</div></div>
+    <div class="level-tools">${l[2].map(t=>`<code>${t}</code>`).join('')}</div>
+  </div>`
+).join('');
+
+// Reference table
+const ref = [
+  ["Linux networking","ip, ss, ping"],
+  ["DNS","dig, host"],
+  ["Network scanning","nmap"],
+  ["Packet analysis","tcpdump, tshark, Wireshark"],
+  ["Web testing","Burp, nikto, gobuster"],
+  ["WordPress","wpscan"],
+  ["Hash auditing","john, hashcat"],
+  ["Wireless lab","aircrack-ng, wifite"],
+  ["Reverse engineering","radare2"],
+  ["Forensics","Autopsy, Volatility"],
+  ["File analysis","exiftool, binwalk"],
+  ["Threat hunting","yara"],
+  ["OSINT","Maltego, theHarvester, recon-ng"],
+  ["Linux hardening","lynis"],
+  ["VPN","openvpn, ike-scan"],
+  ["Firewall","iptables"]
+];
+document.getElementById('refTable').innerHTML = ref.map(r=>
+  `<tr><td>${r[0]}</td><td>${r[1].split(', ').map(c=>`<code>${c}</code>`).join('')}</td></tr>`
+).join('');
+</script>
+</body>
+</html>
